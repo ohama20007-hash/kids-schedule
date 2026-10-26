@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>우리아이 스케줄 & 안전 케어</title>
+    <!-- PWA 웹 매니페스트 및 테마 색상 연결 -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#7cb342">
+    <!-- 동글동글 귀여운 'Jua' 폰트 -->
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Jua', sans-serif;
+            background: #f4f8f5;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            background: #ffffff;
+            padding: 22px 18px;
+            border-radius: 35px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 2px solid #eef4f0;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            background: #eaf3ec;
+            padding: 10px 16px;
+            border-radius: 22px;
+        }
+
+        .profile-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #2e5a36;
+            font-size: 1.1rem;
+        }
+
+        .profile-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            background: #ffffff;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            border: 2px solid #c8e6c9;
+            transition: transform 0.2s;
+        }
+        .profile-icon:hover { transform: scale(1.08); }
+        .profile-icon img { width: 100%; height: 100%; object-fit: cover; }
+        #profileUpload { display: none; }
+
+        .header-icons { display: flex; gap: 6px; align-items: center; }
+
+        .cute-icon-btn {
+            background: #ffffff;
+            border: 1.5px solid #d8e6c4;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: transform 0.2s, background 0.2s;
+        }
+        .cute-icon-btn:hover { transform: scale(1.12); background: #fffde7; }
+
+        /* 월간 달력 UI 스타일 */
+        .monthly-calendar {
+            background: #fffde7;
+            border: 1.5px solid #fff59d;
+            border-radius: 20px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+        .cal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1rem;
+            color: #4e5e32;
+            margin-bottom: 8px;
+        }
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+        }
+        .cal-day-name {
+            font-size: 0.75rem;
+            color: #88987b;
+            padding-bottom: 4px;
+        }
+        .cal-date {
+            font-size: 0.8rem;
+            padding: 4px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            color: #33691e;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .cal-date:hover { background: #e8f5e9; }
+        .cal-date.selected {
+            background: #7cb342;
+            color: white;
+            font-weight: bold;
+        }
+        .cal-dots {
+            display: flex;
+            gap: 2px;
+            margin-top: 2px;
+            height: 6px;
+        }
+        .cal-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+        }
+
+        /* 탭 메뉴 스타일 */
+        .tab-menu { display: flex; gap: 6px; margin-bottom: 12px; }
+        .tab-btn {
+            flex: 1; padding: 7px 4px; border-radius: 12px;
+            border: 2px solid #d8e6c4; background: #f9fbe7;
+            font-family: 'Jua', sans-serif; font-size: 0.82rem;
+            color: #558b2f; cursor: pointer; transition: all 0.2s;
+            text-align: center;
+        }
+        .tab-btn.active {
+            background: #7cb342; color: white; border-color: #7cb342;
+            box-shadow: 0 3px 8px rgba(124, 179, 66, 0.3);
+        }
+
+        .content-list {
+            display: flex; flex-direction: column; gap: 12px;
+            max-height: 260px; overflow-y: auto; padding-right: 4px;
+        }
+
+        .schedule-card {
+            background: #f4f8e8; border: 2px solid #d8e6c4;
+            border-radius: 22px; padding: 16px; display: flex;
+            align-items: center; gap: 14px; position: relative;
+        }
+
+        .academy-clickable { cursor: pointer; transition: background 0.2s; }
+        .academy-clickable:hover { background: #eef4e2; }
+
+        .card-icon-box {
+            background: #ffffff; width: 48px; height: 48px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            flex-shrink: 0; font-size: 1.4rem;
+        }
+
+        .card-info { flex-grow: 1; }
+        .card-title-row {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;
+        }
+
+        .editable { outline: none; border-bottom: 1px dashed transparent; }
+        .editable:focus { border-bottom-color: #2e5a36; }
+
+        .card-title { font-size: 1.05rem; color: #2e5a36; }
+        .card-details { font-size: 0.82rem; color: #637a54; line-height: 1.4; }
+
+        .delete-btn { background: none; border: none; color: #ff8a80; font-size: 1.1rem; cursor: pointer; padding: 0 4px; }
+        .delete-btn:hover { color: #d32f2f; }
+
+        .map-btn {
+            background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9;
+            padding: 4px 10px; border-radius: 10px; font-family: 'Jua', sans-serif;
+            font-size: 0.78rem; cursor: pointer; text-decoration: none; display: inline-block; margin-top: 6px;
+        }
+        .map-btn:hover { background: #c8e6c9; }
+
+        .add-section { margin-top: 15px; display: flex; gap: 6px; align-items: center; }
+        .add-input {
+            flex-grow: 1; padding: 8px 10px; border: 2px solid #d8e6c4;
+            border-radius: 15px; font-family: 'Jua', sans-serif; font-size: 0.9rem;
+            outline: none; background: #fafcf7; color: #2e5a36;
+        }
+        .color-picker {
+            width: 32px; height: 32px; border: none; border-radius: 50%;
+            cursor: pointer; background: none; padding: 0;
+        }
+        .add-btn {
+            background: #7cb342; color: white; border: none; padding: 8px 12px;
+            border-radius: 15px; font-family: 'Jua', sans-serif; font-size: 0.9rem;
+            cursor: pointer; box-shadow: 0 3px 8px rgba(124, 179, 66, 0.3); transition: background 0.2s;
+        }
+        .add-btn:hover { background: #689f38; }
+
+        .tip-box { text-align: center; font-size: 0.78rem; color: #88987b; margin-top: 12px; }
+
+        /* 공유 섹션 스타일 */
+        .share-box {
+            background: #f1f8e9; border: 1.5px dashed #aed581;
+            padding: 10px; border-radius: 12px; margin-bottom: 12px; font-size: 0.85rem; color: #33691e;
+        }
+        .share-input-row { display: flex; gap: 6px; margin-top: 6px; }
+        .share-input {
+            flex-grow: 1; padding: 6px 10px; border: 1px solid #c8e6c9;
+            border-radius: 8px; font-family: 'Jua', sans-serif; font-size: 0.85rem; outline: none;
+        }
+        .share-btn {
+            background: #558b2f; color: white; border: none; padding: 6px 12px;
+            border-radius: 8px; font-family: 'Jua', sans-serif; font-size: 0.85rem; cursor: pointer;
+        }
+        .shared-list { margin-top: 6px; font-size: 0.78rem; color: #558b2f; }
+
+        /* 공통 모달 팝업 스타일 */
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); border-radius: 35px;
+            display: none; justify-content: center; align-items: center; z-index: 10;
+        }
+        .modal-box {
+            background: #ffffff; width: 88%; padding: 22px 18px; border-radius: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 2px solid #fff59d; animation: popUp 0.3s ease;
+        }
+        @keyframes popUp { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .modal-title {
+            font-size: 1.1rem; color: #4e5e32; text-align: center; margin-bottom: 15px;
+            background: #fffde7; padding: 8px; border-radius: 12px;
+        }
+        .alarm-option { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 0.88rem; color: #33691e; }
+        .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc; transition: .3s; border-radius: 22px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px;
+            background-color: white; transition: .3s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #7cb342; }
+        input:checked + .slider:before { transform: translateX(18px); }
+        .memo-textarea {
+            width: 100%; height: 60px; padding: 8px; border: 1.5px solid #d8e6c4;
+            border-radius: 12px; font-family: 'Jua', sans-serif; font-size: 0.85rem;
+            resize: none; outline: none; box-sizing: border-box; background: #fafcf7; color: #2e5a36; margin-top: 5px;
+        }
+        .sos-box { border-color: #ffccbc; }
+        .sos-title { background: #ffebee; color: #c62828; }
+        .location-info {
+            background: #fff3e0; padding: 10px; border-radius: 12px;
+            font-size: 0.85rem; color: #e65100; margin-bottom: 12px; line-height: 1.4;
+        }
+        .emergency-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .emergency-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #fafafa; padding: 8px 12px; border-radius: 10px; border: 1px solid #eee; font-size: 0.88rem; color: #333;
+        }
+        .call-btn { background: #ff7043; color: white; padding: 4px 10px; border-radius: 8px; text-decoration: none; font-size: 0.8rem; }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
+        .modal-btn {
+            flex: 1; padding: 9px; border-radius: 12px; border: none;
+            font-family: 'Jua', sans-serif; font-size: 0.9rem; cursor: pointer;
+        }
+        .btn-cancel { background: #f5f5f5; color: #666; }
+        .btn-save { background: #7cb342; color: white; }
+        .btn-sos { background: #e53935; color: white; }
+
+        /* 학원 상세 설정 모달 스타일 */
+        .setting-row { margin-bottom: 12px; font-size: 0.9rem; color: #33691e; }
+        .setting-row label { display: block; margin-bottom: 4px; font-weight: bold; }
+        .days-container { display: flex; gap: 4px; flex-wrap: wrap; }
+        .day-chip {
+            padding: 5px 8px; border-radius: 10px; border: 1.5px solid #d8e6c4;
+            background: #f9fbe7; font-size: 0.8rem; cursor: pointer; user-select: none;
+        }
+        .day-chip.selected { background: #7cb342; color: white; border-color: #7cb342; }
+        .setting-input {
+            width: 100%; padding: 8px; border: 1.5px solid #d8e6c4;
+            border-radius: 10px; font-family: 'Jua', sans-serif; font-size: 0.88rem; box-sizing: border-box; outline: none;
+        }
+        .time-range-group { display: flex; align-items: center; gap: 6px; }
+        .time-range-group span { font-size: 0.85rem; color: #558b2f; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div class="app-header">
+            <div class="profile-area">
+                <div class="profile-icon" onclick="document.getElementById('profileUpload').click()" title="사진 변경">
+                    <span id="profileEmoji">👦</span>
+                    <img id="profileImg" style="display: none;" alt="프로필">
+                </div>
+                <input type="file" id="profileUpload" accept="image/*" onchange="changeProfileImage(event)">
+                <span class="editable" contenteditable="true">우리아이 스케줄</span>
+            </div>
+
+            <div class="header-icons">
+                <button class="cute-icon-btn" onclick="openSosModal()" title="비상 🚨">🧸🚨</button>
+                <button class="cute-icon-btn" onclick="openAlarmModal()" title="알림 ⏰">✨🔔</button>
+            </div>
+        </div>
+
+        <!-- 월간 달력 UI -->
+        <div class="monthly-calendar">
+            <div class="cal-header">
+                <span>📅 2026년 10월 달력</span>
+                <span style="font-size: 0.8rem; color: #7cb342; cursor: pointer;" onclick="selectDate(null)">전체보기</span>
+            </div>
+            <div class="cal-grid">
+                <div class="cal-day-name">일</div><div class="cal-day-name">월</div><div class="cal-day-name">화</div><div class="cal-day-name">수</div><div class="cal-day-name">목</div><div class="cal-day-name">금</div><div class="cal-day-name">토</div>
+                <div id="calDays" style="display: contents;"></div>
+            </div>
+        </div>
+
+        <!-- 3가지 탭 메뉴 -->
+        <div class="tab-menu">
+            <button class="tab-btn active" id="tabSchedule" onclick="switchTab('schedule')">📚 스케줄</button>
+            <button class="tab-btn" id="tabAcademies" onclick="switchTab('academies')">📋 학원목록</button>
+            <button class="tab-btn" id="tabProtection" onclick="switchTab('protection')">🛡️ 보호업소</button>
+        </div>
+
+        <div class="content-list" id="contentList"></div>
+
+        <!-- 학원 추가 영역 -->
+        <div class="add-section" id="addSection">
+            <input type="text" id="newAcademyInput" class="add-input" placeholder="새 학원 이름">
+            <input type="color" id="newAcademyColor" class="color-picker" value="#ff7043" title="학원 색상 선택">
+            <button class="add-btn" onclick="addSchedule()">추가</button>
+        </div>
+
+        <div class="tip-box" id="tipBox">
+            💡 달력 날짜를 누르면 해당 날짜의 스케줄로 바로 이동해요!
+        </div>
+
+        <!-- 학원 상세 설정 모달 -->
+        <div class="modal-overlay" id="academySettingModal">
+            <div class="modal-box">
+                <div class="modal-title" id="settingModalTitle">🏫 학원 상세 설정</div>
+                
+                <div class="setting-row">
+                    <label>📌 가야 하는 요일 선택 (중복 가능)</label>
+                    <div class="days-container" id="daysContainer">
+                        <div class="day-chip" onclick="toggleDay('월')">월</div>
+                        <div class="day-chip" onclick="toggleDay('화')">화</div>
+                        <div class="day-chip" onclick="toggleDay('수')">수</div>
+                        <div class="day-chip" onclick="toggleDay('목')">목</div>
+                        <div class="day-chip" onclick="toggleDay('금')">금</div>
+                        <div class="day-chip" onclick="toggleDay('토')">토</div>
+                        <div class="day-chip" onclick="toggleDay('일')">일</div>
+                    </div>
+                </div>
+
+                <div class="setting-row">
+                    <label>💳 납부일(결재일) 지정</label>
+                    <input type="date" class="setting-input" id="settingPayDate">
+                </div>
+
+                <div class="setting-row">
+                    <label>⏰ 수업 시간 선택</label>
+                    <div class="time-range-group">
+                        <input type="time" class="setting-input" id="settingStartTime" value="14:00">
+                        <span>부터</span>
+                        <input type="time" class="setting-input" id="settingEndTime" value="15:00">
+                        <span>까지</span>
+                    </div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button class="modal-btn btn-cancel" onclick="closeAcademySetting()">취소</button>
+                    <button class="modal-btn btn-save" onclick="saveAcademySetting()">확인 (고정)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 알림 팝업 -->
+        <div class="modal-overlay" id="alarmModal">
+            <div class="modal-box">
+                <div class="modal-title">✨ 알림 설정 및 스케줄 공유 ⏰</div>
+                
+                <div class="share-box">
+                    📧 <b>다른 사람과 스케줄 공유하기</b>
+                    <div class="share-input-row">
+                        <input type="email" id="shareEmailInput" class="share-input" placeholder="상대방 이메일 입력">
+                        <button class="share-btn" onclick="shareSchedule()">공유요청</button>
+                    </div>
+                    <div class="shared-list" id="sharedList">연동된 이메일: 없음</div>
+                </div>
+
+                <div class="alarm-option">
+                    <span>🚗 학원 출발 10분 전</span>
+                    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                </div>
+                <div class="alarm-option">
+                    <span>💳 수강료 결제일 3일 전</span>
+                    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                </div>
+
+                <div class="modal-buttons">
+                    <button class="modal-btn btn-cancel" onclick="closeAlarmModal()">닫기</button>
+                    <button class="modal-btn btn-save" onclick="closeAlarmModal()">저장</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SOS 팝업 -->
+        <div class="modal-overlay" id="sosModal">
+            <div class="modal-box sos-box">
+                <div class="modal-title sos-title">🧸🚨 위급 상황 도움 요청</div>
+                <div class="location-info">
+                    📍 <b>현재 위치:</b> 대한민국 경기도 의정부시<br>
+                    <span style="font-size: 0.78rem; color: #f57c00;">(GPS 기반 자동 확인 완료)</span>
+                </div>
+                <div class="emergency-list">
+                    <div class="emergency-item">
+                        <span>🚓 경찰서 (112)</span>
+                        <a href="tel:112" class="call-btn">전화걸기</a>
+                    </div>
+                    <div class="emergency-item">
+                        <span>🚑 응급실/소방서 (119)</span>
+                        <a href="tel:119" class="call-btn">전화걸기</a>
+                    </div>
+                    <div class="emergency-item">
+                        <span>👩‍👦 보호자 비상연락망</span>
+                        <a href="tel:010-0000-0000" class="call-btn">전화걸기</a>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn btn-sos" onclick="closeSosModal()">닫기</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // PWA 서비스 워커 등록 코드
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(() => console.log('서비스 워커 등록 성공!'))
+                    .catch((err) => console.log('서비스 워커 등록 실패:', err));
+            });
+        }
+
+        let currentTab = 'schedule';
+        let selectedDateFilter = null;
+        let editingAcademyIndex = null;
+        let tempSelectedDays = [];
+        let sharedEmails = [];
+
+        let schedules = [
+            { icon: "📐", title: "수학 위대한 학원", payDate: "2026-10-10", startTime: "14:00", endTime: "15:00", daysOfWeek: ["월", "수", "금"], color: "#4caf50", details: "강의실 A · 교재: 이영희" },
+            { icon: "🎹", title: "선율 음악학원", payDate: "2026-10-08", startTime: "16:30", endTime: "17:30", daysOfWeek: ["화", "목"], color: "#ff9800", details: "강의실 A · 교재: 이영희" },
+            { icon: "⚽", title: "키즈 스포츠 클럽", payDate: "2026-10-15", startTime: "15:00", endTime: "16:00", daysOfWeek: ["토"], color: "#2196f3", details: "강의실 B · 교재: 프린트" }
+        ];
+
+        let protections = [
+            { icon: "🛡️", title: "경기북부 아동보호전문기관", badge: "아동보호", details: "경기도 의정부시 중앙로<br>전화: 031-000-0000", query: "경기북부 아동보호전문기관 의정부" },
+            { icon: "🏫", title: "아동안전지킴이집 (파출소 연계)", badge: "안전지킴이", details: "인근 지정 편의점 및 안전 가이드 업소<br>비상 시 즉시 대피 가능", query: "의정부 안전지킴이집" },
+            { icon: "🏥", title: "의정부 으뜸 소아청소년과", badge: "지정병원", details: "위급 시 응급 진료 및 아동 케어<br>전화: 031-111-2222", query: "의정부 소아청소년과" }
+        ];
+
+        function renderCalendar() {
+            const calDaysContainer = document.getElementById('calDays');
+            calDaysContainer.innerHTML = '';
+
+            for (let i = 0; i < 4; i++) {
+                const empty = document.createElement('div');
+                calDaysContainer.appendChild(empty);
+            }
+
+            for (let day = 1; day <= 31; day++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'cal-date';
+                const formattedDay = day < 10 ? '0' + day : day;
+                const dateStr = `2026-10-${formattedDay}`;
+                
+                const matchingSchedules = schedules.filter(s => s.payDate === dateStr);
+
+                let dotsHtml = '<div class="cal-dots">';
+                matchingSchedules.forEach(s => {
+                    dotsHtml += `<div class="cal-dot" style="background-color: ${s.color};" title="${s.title} 결재일"></div>`;
+                });
+                dotsHtml += '</div>';
+
+                dayEl.innerHTML = `<span>${day}</span>${dotsHtml}`;
+
+                if (selectedDateFilter === dateStr) {
+                    dayEl.classList.add('selected');
+                }
+
+                dayEl.onclick = () => {
+                    selectDate(dateStr);
+                    switchTab('schedule');
+                };
+
+                calDaysContainer.appendChild(dayEl);
+            }
+        }
+
+        function selectDate(dateStr) {
+            selectedDateFilter = (selectedDateFilter === dateStr) ? null : dateStr;
+            renderCalendar();
+            renderContent();
+        }
+
+        function changeProfileImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('profileImg');
+                    const emoji = document.getElementById('profileEmoji');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    emoji.style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function switchTab(tab) {
+            closeAlarmModal();
+            closeSosModal();
+            closeAcademySetting();
+
+            currentTab = tab;
+            document.getElementById('tabSchedule').className = tab === 'schedule' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById('tabAcademies').className = tab === 'academies' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById('tabProtection').className = tab === 'protection' ? 'tab-btn active' : 'tab-btn';
+            
+            document.getElementById('addSection').style.display = tab === 'schedule' || tab === 'academies' ? 'flex' : 'none';
+            
+            if (tab === 'schedule') {
+                document.getElementById('tipBox').innerText = selectedDateFilter 
+                    ? `💡 ${selectedDateFilter} 일정만 모아서 보고 있어요!` 
+                    : '💡 달력 날짜를 누르면 해당 날짜의 스케줄로 바로 이동해요!';
+            } else if (tab === 'academies') {
+                document.getElementById('tipBox').innerText = '💡 학원을 클릭하면 결재일과 요일/시간을 수정할 수 있어요!';
+            } else {
+                document.getElementById('tipBox').innerText = '💡 [길찾기]를 누르면 구글 지도로 바로 길안내가 연결돼요!';
+            }
+            
+            renderContent();
+        }
+
+        function renderContent() {
+            const listContainer = document.getElementById('contentList');
+            listContainer.innerHTML = '';
+
+            if (currentTab === 'schedule') {
+                let filteredSchedules = schedules;
+                if (selectedDateFilter) {
+                    filteredSchedules = schedules.filter(item => item.payDate === selectedDateFilter);
+                }
+
+                filteredSchedules.sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+                if (filteredSchedules.length === 0) {
+                    listContainer.innerHTML = `<div style="text-align: center; color: #88987b; padding: 20px; font-size: 0.9rem;">해당 날짜에 등록된 일정이 없어요!</div>`;
+                    return;
+                }
+
+                filteredSchedules.forEach((item) => {
+                    const originalIndex = schedules.indexOf(item);
+
+                    const card = document.createElement('div');
+                    card.className = 'schedule-card';
+                    card.style.borderLeft = `6px solid ${item.color}`;
+                    card.innerHTML = `
+                        <div class="card-icon-box">${item.icon}</div>
+                        <div class="card-info">
+                            <div class="card-title-row">
+                                <span class="card-title editable" contenteditable="true">${item.title} (${item.startTime} ~ ${item.endTime})</span>
+                            </div>
+                            <div class="card-details editable" contenteditable="true">
+                                요일: ${item.daysOfWeek.join(', ')}요일 · ${item.details}
+                            </div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteSchedule(${originalIndex})" title="삭제">✕</button>
+                    `;
+                    listContainer.appendChild(card);
+                });
+            } else if (currentTab === 'academies') {
+                if (schedules.length === 0) {
+                    listContainer.innerHTML = `<div style="text-align: center; color: #88987b; padding: 20px; font-size: 0.9rem;">등록된 학원이 없어요!</div>`;
+                    return;
+                }
+
+                schedules.forEach((item, index) => {
+                    const dateParts = item.payDate.split('-');
+                    const shortDate = `${dateParts[1]}. ${dateParts[2]}.`;
+
+                    const card = document.createElement('div');
+                    card.className = 'schedule-card academy-clickable';
+                    card.style.borderLeft = `6px solid ${item.color}`;
+                    card.onclick = () => openAcademySetting(index);
+                    
+                    card.innerHTML = `
+                        <div class="card-icon-box">${item.icon}</div>
+                        <div class="card-info">
+                            <div class="card-title-row">
+                                <span class="card-title">${item.title}</span>
+                                <span style="font-size: 0.75rem; background: #e8f5e9; color: #2e7d32; padding: 2px 6px; border-radius: 6px;">수정하기 ⚙️</span>
+                            </div>
+                            <div class="card-details">
+                                요일: <b>${item.daysOfWeek.join(', ')}요일</b> (${item.startTime} ~ ${item.endTime})<br>
+                                결재일: <span style="color: ${item.color}; font-weight: bold;">${shortDate}</span>
+                            </div>
+                        </div>
+                        <button class="delete-btn" onclick="event.stopPropagation(); deleteSchedule(${index})" title="삭제">✕</button>
+                    `;
+                    listContainer.appendChild(card);
+                });
+            } else {
+                protections.forEach((item) => {
+                    const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.query)}`;
+                    const card = document.createElement('div');
+                    card.className = 'schedule-card';
+                    card.innerHTML = `
+                        <div class="card-icon-box">${item.icon}</div>
+                        <div class="card-info">
+                            <div class="card-title-row">
+                                <span class="card-title">${item.title}</span>
+                                <span class="badge" style="background:#e1f5fe; color:#0288d1; padding:2px 8px; border-radius:10px; font-size:0.72rem;">${item.badge}</span>
+                            </div>
+                            <div class="card-details">
+                                ${item.details}<br>
+                                <a href="${mapUrl}" target="_blank" class="map-btn">🗺️ 현재위치 기준 길찾기</a>
+                            </div>
+                        </div>
+                    `;
+                    listContainer.appendChild(card);
+                });
+            }
+        }
+
+        function shareSchedule() {
+            const emailInput = document.getElementById('shareEmailInput');
+            const email = emailInput.value.trim();
+            if (!email || !email.includes('@')) {
+                alert('올바른 이메일 주소를 입력해 주세요!');
+                return;
+            }
+            sharedEmails.push(email);
+            emailInput.value = '';
+            
+            document.getElementById('sharedList').innerText = `연동된 이메일: ${sharedEmails.join(', ')}`;
+            alert(`[${email}] 님에게 스케줄 연동 초대 메일이 전송되었습니다!`);
+        }
+
+        function openAcademySetting(index) {
+            editingAcademyIndex = index;
+            const academy = schedules[index];
+            
+            document.getElementById('settingModalTitle').innerText = `🏫 ${academy.title} 설정`;
+            document.getElementById('settingPayDate').value = academy.payDate;
+            document.getElementById('settingStartTime').value = academy.startTime;
+            document.getElementById('settingEndTime').value = academy.endTime;
+            tempSelectedDays = [...academy.daysOfWeek];
+            
+            updateDayChipsUI();
+            document.getElementById('academySettingModal').style.display = 'flex';
+        }
+
+        function closeAcademySetting() {
+            document.getElementById('academySettingModal').style.display = 'none';
+            editingAcademyIndex = null;
+        }
+
+        function toggleDay(day) {
+            const idx = tempSelectedDays.indexOf(day);
+            if (idx > -1) {
+                tempSelectedDays.splice(idx, 1);
+            } else {
+                tempSelectedDays.push(day);
+            }
+            updateDayChipsUI();
+        }
+
+        function updateDayChipsUI() {
+            const chips = document.querySelectorAll('.day-chip');
+            chips.forEach(chip => {
+                if (tempSelectedDays.includes(chip.innerText)) {
+                    chip.classList.add('selected');
+                } else {
+                    chip.classList.remove('selected');
+                }
+            });
+        }
+
+        function saveAcademySetting() {
+            if (editingAcademyIndex !== null) {
+                if (tempSelectedDays.length === 0) {
+                    alert('최소 하나의 요일을 선택해 주세요!');
+                    return;
+                }
+                schedules[editingAcademyIndex].daysOfWeek = [...tempSelectedDays];
+                schedules[editingAcademyIndex].payDate = document.getElementById('settingPayDate').value;
+                schedules[editingAcademyIndex].startTime = document.getElementById('settingStartTime').value;
+                schedules[editingAcademyIndex].endTime = document.getElementById('settingEndTime').value;
+
+                closeAcademySetting();
+                renderCalendar();
+                renderContent();
+            }
+        }
+
+        function addSchedule() {
+            const input = document.getElementById('newAcademyInput');
+            const colorPicker = document.getElementById('newAcademyColor');
+            const academyName = input.value.trim();
+
+            if (!academyName) {
+                alert('학원 이름을 입력해 주세요!');
+                return;
+            }
+
+            schedules.push({
+                icon: "✏️",
+                title: academyName,
+                payDate: "2026-10-10",
+                startTime: "15:00",
+                endTime: "16:00",
+                daysOfWeek: ["월"],
+                color: colorPicker.value,
+                details: "강의실 입력 · 교재 입력"
+            });
+
+            input.value = ''; 
+            renderCalendar();
+            renderContent(); 
+        }
+
+        function deleteSchedule(index) {
+            schedules.splice(index, 1);
+            renderCalendar();
+            renderContent();
+        }
+
+        function openAlarmModal() { document.getElementById('alarmModal').style.display = 'flex'; }
+        function closeAlarmModal() { document.getElementById('alarmModal').style.display = 'none'; }
+        function openSosModal() { document.getElementById('sosModal').style.display = 'flex'; }
+        function closeSosModal() { document.getElementById('sosModal').style.display = 'none'; }
+
+        // 초기 실행
+        renderCalendar();
+        renderContent();
+    </script>
+
+</body>
+</html>
