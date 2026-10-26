@@ -6,7 +6,7 @@
   "orientation": "any",
   "scope": "/",
   "short_name": "우리아이 스케줄",
-  "start_url": "/kids-schedule/",
+  "start_url": "/",
   "theme_color": "#ffffff",
   "description": "아이들의 학원 스케줄과 안전을 관리하는 안심 스케줄러"
 }
