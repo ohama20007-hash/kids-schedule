@@ -1,12 +1,12 @@
 {
-  "background_color": "#0c0c0c",
+  "background_color": "#ffffff",
   "dir": "ltr",
   "display": "standalone",
-  "name": "아이스케줄 &amp; 케어",
+  "name": "우리아이 스케줄 & 안전 케어",
   "orientation": "any",
   "scope": "/",
   "short_name": "우리아이 스케줄",
-  "start_url": "/",
+  "start_url": "/kids-schedule/",
   "theme_color": "#ffffff",
-  "id": "아이들의 학원 스케줄과 안전을 관리하는 안심 스케줄러"
+  "description": "아이들의 학원 스케줄과 안전을 관리하는 안심 스케줄러"
 }
