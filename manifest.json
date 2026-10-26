@@ -8,5 +8,17 @@
   "short_name": "우리아이 스케줄",
   "start_url": "/",
   "theme_color": "#ffffff",
-  "description": "아이들의 학원 스케줄과 안전을 관리하는 안심 스케줄러"
+  "description": "아이들의 학원 스케줄과 안전을 관리하는 안심 스케줄러",
+  "icons": [
+    {
+      "src": "런처아이콘-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "런처아이콘-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
