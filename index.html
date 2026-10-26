@@ -2,10 +2,9 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <!-- 모바일 화면에 꽉 차게 맞춰주는 필수 설정 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>우리아이 스케줄 & 안전 케어</title>
-    <!-- PWA 웹 매니페스트 및 테마 색상 연결 -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#7cb342">
     <!-- 동글동글 귀여운 'Jua' 폰트 -->
     <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
     <style>
@@ -460,15 +459,6 @@
     </div>
 
     <script>
-        // PWA 서비스 워커 등록 코드
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(() => console.log('서비스 워커 등록 성공!'))
-                    .catch((err) => console.log('서비스 워커 등록 실패:', err));
-            });
-        }
-
         let currentTab = 'schedule';
         let selectedDateFilter = null;
         let editingAcademyIndex = null;
